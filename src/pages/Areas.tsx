@@ -81,7 +81,9 @@ export default function Areas() {
   const effectiveClientCode = clientCode || selectedClientCode || undefined;
   const [activeTab, setActiveTab] = useState('areas');
   const [areas, setAreas] = useState<Area[]>([]);
+  const [selectedLocationAreaAccordion, setSelectedLocationAreaAccordion] = useState<string>('');
   const [locations, setLocations] = useState<Location[]>([]);
+  const [selectedParameterLocationAccordion, setSelectedParameterLocationAccordion] = useState<string>('');
   const [parameters, setParameters] = useState<Parameter[]>([]);
   const [setpoints, setSetpoints] = useState<Record<string, Setpoint[]>>({});
   const [loading, setLoading] = useState(true);
@@ -878,6 +880,172 @@ export default function Areas() {
 
           <Card className="border-0 shadow-none bg-transparent">
             <CardContent className="p-0">
+              {/* Areas List with Locations Accordion */}
+              {areas.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex flex-col border border-gray-100 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-gray-950 shadow-sm transition-all focus-within:ring-2 focus-within:ring-[#3eaa76]/50">
+                    {areas.map((area, index) => (
+                      <div key={area._id} className={cn("flex flex-col group", index !== areas.length - 1 ? "border-b border-gray-100 dark:border-gray-800" : "")}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedLocationAreaAccordion(selectedLocationAreaAccordion === area._id ? '' : area._id)}
+                          className="w-full flex items-center justify-between px-5 py-4 min-h-[50px] bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors outline-none"
+                        >
+                          <span className="text-[15px] font-bold text-gray-900 dark:text-white transition-colors uppercase tracking-wider">{area.name}</span>
+                          <ChevronDown className={cn("w-5 h-5 text-gray-400 transition-transform duration-300", selectedLocationAreaAccordion === area._id ? "rotate-180" : "")} />
+                        </button>
+
+                        <div className={cn(
+                          "transition-all duration-300 ease-in-out overflow-hidden",
+                          selectedLocationAreaAccordion === area._id ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+                        )}>
+                          <div className="flex flex-col border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950">
+                            {(() => {
+                              const areaLocations = locations.filter(loc => getLocationAreaId(loc) === area._id);
+
+                              return areaLocations.length > 0 ? areaLocations.map((location, locIndex) => (
+                                <div key={location._id} className={cn("flex items-center gap-4 px-6 py-4 bg-white dark:bg-gray-900 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50", locIndex !== areaLocations.length - 1 ? "border-b border-gray-100 dark:border-gray-800" : "")}>
+                                  {editingLocation === location._id ? (
+                                    <div className="w-full flex flex-col gap-4">
+                                      {(() => {
+                                        if (!editingLocationData[location._id]) {
+                                          initializeLocationEditing(location);
+                                        }
+                                        return null;
+                                      })()}
+                                      <div className="grid grid-cols-1 gap-4">
+                                        <div className="float-group">
+                                          <input
+                                            type="text"
+                                            value={editingLocationData[location._id]?.name || ''}
+                                            onChange={(e) => updateLocationEditingField(location._id, 'name', e.target.value)}
+                                            disabled={updatingLocation[location._id]}
+                                            placeholder=" "
+                                            className="float-input font-semibold"
+                                          />
+                                          <label className="float-label font-bold text-gray-500 uppercase tracking-wider text-[10px]">NOMBRE</label>
+                                        </div>
+                                        <div className="float-group">
+                                          <input
+                                            type="text"
+                                            value={editingLocationData[location._id]?.description || ''}
+                                            onChange={(e) => updateLocationEditingField(location._id, 'description', e.target.value)}
+                                            disabled={updatingLocation[location._id]}
+                                            placeholder=" "
+                                            className="float-input"
+                                          />
+                                          <label className="float-label font-bold text-gray-500 uppercase tracking-wider text-[10px]">DESCRIPCIÓN</label>
+                                        </div>
+                                        <IonSelect
+                                          value={editingLocationData[location._id]?.areaId || ''}
+                                          onIonChange={(e) => updateLocationEditingField(location._id, 'areaId', e.detail.value)}
+                                          disabled={updatingLocation[location._id]}
+                                          className="flex min-h-[48px] w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-0 text-sm focus:outline-none transition-all"
+                                        >
+                                          {areas.map((a) => (
+                                            <IonSelectOption key={a._id} value={a._id}>{a.name}</IonSelectOption>
+                                          ))}
+                                        </IonSelect>
+                                        <div className="float-group">
+                                          <input
+                                            type="text"
+                                            value={editingLocationData[location._id]?.message || ''}
+                                            onChange={(e) => updateLocationEditingField(location._id, 'message', e.target.value)}
+                                            disabled={updatingLocation[location._id]}
+                                            placeholder=" "
+                                            className="float-input"
+                                          />
+                                          <label className="float-label font-bold text-gray-500 uppercase tracking-wider text-[10px]">MENSAJE PARA EL DASHBOARD</label>
+                                        </div>
+                                        <IonSelect
+                                          value={editingLocationData[location._id]?.status || 'info'}
+                                          onIonChange={(e) => updateLocationEditingField(location._id, 'status', e.detail.value)}
+                                          disabled={updatingLocation[location._id]}
+                                          className="flex min-h-[48px] w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-0 text-sm focus:outline-none transition-all"
+                                        >
+                                          <IonSelectOption value="info">Info</IonSelectOption>
+                                          <IonSelectOption value="warning">Warning</IonSelectOption>
+                                          <IonSelectOption value="danger">Danger</IonSelectOption>
+                                          <IonSelectOption value="success">Success</IonSelectOption>
+                                        </IonSelect>
+                                      </div>
+                                      <div className="flex gap-2 items-center">
+                                        <IonButton
+                                          fill="solid"
+                                          size="small"
+                                          onClick={() => handleSaveLocation(location._id)}
+                                          disabled={updatingLocation[location._id] || !editingLocationData[location._id]}
+                                          className="font-bold text-white rounded shadow-sm"
+                                          style={{ '--background': '#3eaa76', '--background-hover': '#338f61', '--padding-top': '0.75rem', '--padding-bottom': '0.75rem', '--padding-start': '1.5rem', '--padding-end': '1.5rem' }}
+                                        >
+                                          {updatingLocation[location._id] ? (
+                                            <>
+                                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                              Guardando...
+                                            </>
+                                          ) : (
+                                            'GUARDAR'
+                                          )}
+                                        </IonButton>
+                                        <IonButton
+                                          fill="clear"
+                                          onClick={() => {
+                                            setEditingLocationData(prev => {
+                                              const newState = { ...prev };
+                                              delete newState[location._id];
+                                              return newState;
+                                            });
+                                            setEditingLocation(null);
+                                          }}
+                                        >
+                                          <X className="w-5 h-5 text-gray-500" />
+                                        </IonButton>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <div className="flex-1 overflow-hidden">
+                                        <h4 className="font-medium text-[17px] text-[#1c2b36] dark:text-gray-100 truncate">
+                                          {location.name}
+                                        </h4>
+                                        {location.description && <p className="text-sm text-gray-500 mt-1">{location.description}</p>}
+                                      </div>
+                                      <div className="flex items-center space-x-1 shrink-0 bg-transparent">
+                                        <button
+                                          type="button"
+                                          onClick={() => setEditingLocation(location._id)}
+                                          className="p-2 text-gray-500 hover:text-[#3eaa76] hover:bg-emerald-50 rounded-full transition-colors"
+                                        >
+                                          <Edit2 className="w-[18px] h-[18px] stroke-[1.5]" />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setDeleteModalState({ isOpen: true, type: 'location', targetId: location._id });
+                                          }}
+                                          className="p-2 text-[#e53e3e] hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                                        >
+                                          <Trash2 className="w-[18px] h-[18px] stroke-[1.5]" />
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              )) : (
+                                <div className="text-center py-6 border border-dashed border-gray-200 dark:border-gray-800 rounded-xl m-4">
+                                  <p className="text-sm text-gray-500 italic">No hay ubicaciones asociadas a esta área.</p>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* New Location Form */}
               <div className="mb-8 p-6 bg-white rounded-2xl border border-dashed border-gray-300">
                 <h3 className="font-semibold text-gray-700 mb-6 flex items-center space-x-2 text-lg">
@@ -967,150 +1135,6 @@ export default function Areas() {
                 </IonButton>
               </div>
 
-              {/* Locations List */}
-              <div className="space-y-2">
-                {locations
-                  .filter((location) => {
-                    if (!newLocation.areaId) return false;
-                    return getLocationAreaId(location) === newLocation.areaId;
-                  })
-                  .map((location) => {
-                    const area = areas.find(a => a._id === getLocationAreaId(location));
-                    return (
-                      <div key={location._id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                        {editingLocation === location._id ? (
-                          <div className="w-full flex flex-col gap-4">
-                            {(() => {
-                              if (!editingLocationData[location._id]) {
-                                initializeLocationEditing(location);
-                              }
-                              return null;
-                            })()}
-                            <div className="grid grid-cols-1 gap-4">
-                              <div className="float-group">
-                                <input
-                                  type="text"
-                                  value={editingLocationData[location._id]?.name || ''}
-                                  onChange={(e) => updateLocationEditingField(location._id, 'name', e.target.value)}
-                                  disabled={updatingLocation[location._id]}
-                                  placeholder=" "
-                                  className="float-input font-semibold"
-                                />
-                                <label className="float-label font-bold text-gray-500 uppercase tracking-wider text-[10px]">NOMBRE</label>
-                              </div>
-                              <div className="float-group">
-                                <input
-                                  type="text"
-                                  value={editingLocationData[location._id]?.description || ''}
-                                  onChange={(e) => updateLocationEditingField(location._id, 'description', e.target.value)}
-                                  disabled={updatingLocation[location._id]}
-                                  placeholder=" "
-                                  className="float-input"
-                                />
-                                <label className="float-label font-bold text-gray-500 uppercase tracking-wider text-[10px]">DESCRIPCIÓN</label>
-                              </div>
-                              <IonSelect
-                                value={editingLocationData[location._id]?.areaId || ''}
-                                onIonChange={(e) => updateLocationEditingField(location._id, 'areaId', e.detail.value)}
-                                disabled={updatingLocation[location._id]}
-                                className="flex min-h-[48px] w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-0 text-sm focus:outline-none transition-all"
-                              >
-                                {areas.map((area) => (
-                                  <IonSelectOption key={area._id} value={area._id}>{area.name}</IonSelectOption>
-                                ))}
-                              </IonSelect>
-                              <div className="float-group">
-                                <input
-                                  type="text"
-                                  value={editingLocationData[location._id]?.message || ''}
-                                  onChange={(e) => updateLocationEditingField(location._id, 'message', e.target.value)}
-                                  disabled={updatingLocation[location._id]}
-                                  placeholder=" "
-                                  className="float-input"
-                                />
-                                <label className="float-label font-bold text-gray-500 uppercase tracking-wider text-[10px]">MENSAJE PARA EL DASHBOARD</label>
-                              </div>
-                              <IonSelect
-                                value={editingLocationData[location._id]?.status || 'info'}
-                                onIonChange={(e) => updateLocationEditingField(location._id, 'status', e.detail.value)}
-                                disabled={updatingLocation[location._id]}
-                                className="flex min-h-[48px] w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-0 text-sm focus:outline-none transition-all"
-                              >
-                                <IonSelectOption value="info">Info</IonSelectOption>
-                                <IonSelectOption value="warning">Warning</IonSelectOption>
-                                <IonSelectOption value="danger">Danger</IonSelectOption>
-                                <IonSelectOption value="success">Success</IonSelectOption>
-                              </IonSelect>
-                            </div>
-                            <div className="flex gap-2 items-center">
-                              <IonButton
-                                fill="solid"
-                                size="small"
-                                onClick={() => handleSaveLocation(location._id)}
-                                disabled={updatingLocation[location._id] || !editingLocationData[location._id]}
-                                className="font-bold text-white rounded shadow-sm"
-                                style={{ '--background': '#3eaa76', '--background-hover': '#338f61', '--padding-top': '0.75rem', '--padding-bottom': '0.75rem', '--padding-start': '1.5rem', '--padding-end': '1.5rem' }}
-                              >
-                                {updatingLocation[location._id] ? (
-                                  <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Guardando...
-                                  </>
-                                ) : (
-                                  'GUARDAR'
-                                )}
-                              </IonButton>
-                              <IonButton
-                                fill="clear"
-                                onClick={() => {
-                                  setEditingLocationData(prev => {
-                                    const newState = { ...prev };
-                                    delete newState[location._id];
-                                    return newState;
-                                  });
-                                  setEditingLocation(null);
-                                }}
-                              >
-                                <X className="w-5 h-5 text-gray-500" />
-                              </IonButton>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2">
-                                <h4 className="font-semibold">
-                                  {area ? `${area.name} → ${location.name}` : location.name}
-                                </h4>
-                              </div>
-                              {location.description && (
-                                <p className="text-sm text-muted-foreground">{location.description}</p>
-                              )}
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <IonButton
-                                fill="clear"
-                                onClick={() => setEditingLocation(location._id)}
-                              >
-                                <Edit2 className="w-4 h-4 text-gray-600" />
-                              </IonButton>
-                              <IonButton
-                                fill="clear"
-                                color="danger"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeleteModalState({ isOpen: true, type: 'location', targetId: location._id });
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </IonButton>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -1124,6 +1148,210 @@ export default function Areas() {
 
           <Card className="border-0 shadow-none bg-transparent">
             <CardContent className="p-0">
+              {/* Locations List with Parameters Accordion */}
+              {locations.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex flex-col border border-gray-100 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-gray-950 shadow-sm transition-all focus-within:ring-2 focus-within:ring-[#3eaa76]/50">
+                    {locations.map((location, index) => {
+                      const area = areas.find(a => a._id === getLocationAreaId(location));
+                      return (
+                        <div key={location._id} className={cn("flex flex-col group", index !== locations.length - 1 ? "border-b border-gray-100 dark:border-gray-800" : "")}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedParameterLocationAccordion(selectedParameterLocationAccordion === location._id ? '' : location._id)}
+                            className="w-full flex flex-col items-start px-5 py-3 min-h-[50px] bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors outline-none"
+                          >
+                            <div className="w-full flex items-center justify-between">
+                              <span className="text-[15px] font-bold text-gray-900 dark:text-white transition-colors uppercase tracking-wider">{location.name}</span>
+                              <ChevronDown className={cn("w-5 h-5 text-gray-400 transition-transform duration-300", selectedParameterLocationAccordion === location._id ? "rotate-180" : "")} />
+                            </div>
+                            {area && (
+                              <span className="text-xs text-gray-400 mt-1">{area.name}</span>
+                            )}
+                          </button>
+
+                          <div className={cn(
+                            "transition-all duration-300 ease-in-out overflow-hidden",
+                            selectedParameterLocationAccordion === location._id ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+                          )}>
+                            <div className="flex flex-col border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950">
+                              {(() => {
+                                const locationParameters = parameters.filter((parameter) => {
+                                  return getParameterLocationId(parameter) === location._id;
+                                });
+
+                                return locationParameters.length > 0 ? locationParameters.map((parameter) => {
+                                  return (
+                                    <div key={parameter._id} className="p-4 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-muted/50 transition-colors">
+                                      {editingParameter === parameter._id ? (
+                                        <div className="space-y-4">
+                                          {(() => {
+                                            if (!editingParameterData[parameter._id]) {
+                                              initializeParameterEditing(parameter);
+                                            }
+                                            return null;
+                                          })()}
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="float-group">
+                                              <input
+                                                type="text"
+                                                value={editingParameterData[parameter._id]?.name || ''}
+                                                onChange={(e) => updateParameterEditingField(parameter._id, 'name', e.target.value)}
+                                                disabled={updatingParameter[parameter._id]}
+                                                placeholder=" "
+                                                className="float-input"
+                                              />
+                                              <label className="float-label">Nombre</label>
+                                            </div>
+                                            <div>
+                                              <Label>Tipo</Label>
+                                              <IonSelect
+                                                value={editingParameterData[parameter._id]?.type || 'sensor'}
+                                                onIonChange={(e) => updateParameterEditingField(parameter._id, 'type', e.detail.value as 'sensor' | 'status')}
+                                                disabled={updatingParameter[parameter._id]}
+                                                className="flex min-h-[40px] w-full rounded-md border border-input bg-background px-3 py-0 text-sm"
+                                              >
+                                                <IonSelectOption value="sensor">Sensor (Valor numérico)</IonSelectOption>
+                                                <IonSelectOption value="status">Estado (ON/OFF)</IonSelectOption>
+                                              </IonSelect>
+                                            </div>
+                                            <div className="float-group">
+                                              <input
+                                                type="text"
+                                                value={editingParameterData[parameter._id]?.unit || ''}
+                                                onChange={(e) => updateParameterEditingField(parameter._id, 'unit', e.target.value)}
+                                                disabled={parameter.type === 'status' || updatingParameter[parameter._id]}
+                                                placeholder=" "
+                                                className="float-input"
+                                              />
+                                              <label className="float-label">Unidad</label>
+                                            </div>
+                                            <div className="float-group">
+                                              <input
+                                                type="number"
+                                                min={0}
+                                                max={6}
+                                                value={editingParameterData[parameter._id]?.decimals ?? 2}
+                                                onChange={(e) => {
+                                                  const value = Math.max(0, Math.min(6, Number(e.target.value)));
+                                                  updateParameterEditingField(parameter._id, 'decimals', Number.isNaN(value) ? 2 : value);
+                                                }}
+                                                disabled={updatingParameter[parameter._id]}
+                                                placeholder=" "
+                                                className="float-input"
+                                              />
+                                              <label className="float-label">Decimales</label>
+                                            </div>
+                                            <div className="float-group md:col-span-2">
+                                              <input
+                                                type="text"
+                                                value={editingParameterData[parameter._id]?.topic || ''}
+                                                onChange={(e) => updateParameterEditingField(parameter._id, 'topic', e.target.value)}
+                                                disabled={updatingParameter[parameter._id]}
+                                                placeholder=" "
+                                                className="float-input"
+                                              />
+                                              <label className="float-label">Tópico MQTT</label>
+                                            </div>
+                                            <div className="float-group md:col-span-2">
+                                              <textarea
+                                                value={editingParameterData[parameter._id]?.description || ''}
+                                                onChange={(e) => updateParameterEditingField(parameter._id, 'description', e.target.value)}
+                                                disabled={updatingParameter[parameter._id]}
+                                                placeholder=" "
+                                                className="float-textarea resize-none"
+                                              />
+                                              <label className="float-label">Descripción</label>
+                                            </div>
+                                          </div>
+                                          <div className="flex gap-2 items-center">
+                                            <IonButton
+                                              fill="solid"
+                                              size="small"
+                                              onClick={() => handleSaveParameter(parameter._id)}
+                                              disabled={updatingParameter[parameter._id] || !editingParameterData[parameter._id]}
+                                              className="font-bold text-white rounded shadow-sm"
+                                              style={{ '--background': '#3eaa76', '--background-hover': '#338f61', '--padding-top': '0.75rem', '--padding-bottom': '0.75rem', '--padding-start': '1.5rem', '--padding-end': '1.5rem' }}
+                                            >
+                                              {updatingParameter[parameter._id] ? (
+                                                <>
+                                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                  Guardando...
+                                                </>
+                                              ) : (
+                                                'GUARDAR'
+                                              )}
+                                            </IonButton>
+                                            <IonButton
+                                              fill="clear"
+                                              onClick={() => {
+                                                setEditingParameterData(prev => {
+                                                  const newState = { ...prev };
+                                                  delete newState[parameter._id];
+                                                  return newState;
+                                                });
+                                                setEditingParameter(null);
+                                              }}
+                                            >
+                                              <X className="w-5 h-5 text-gray-500" />
+                                            </IonButton>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-start justify-between">
+                                          <div className="flex-1 min-w-0 pr-4">
+                                            <div className="flex items-center space-x-2 mb-2">
+                                              <h4 className="font-semibold text-[15px] sm:text-[16px] text-gray-900 dark:text-gray-100 tracking-tight leading-tight">{parameter.name}</h4>
+                                              {parameter.type === 'status' && (
+                                                <span className="text-[10px] sm:text-xs bg-purple-100 text-purple-800 px-2 py-0.5 sm:py-1 rounded font-medium whitespace-nowrap shrink-0">
+                                                  Estado
+                                                </span>
+                                              )}
+                                              <span className="text-[11px] sm:text-xs text-gray-500 whitespace-nowrap shrink-0 block mt-[1px]">({parameter.unit})</span>
+                                            </div>
+                                            <p className="text-[12px] sm:text-[13px] font-mono text-gray-500 mb-1 break-all leading-tight">{parameter.topic}</p>
+                                            {parameter.description && (
+                                              <p className="text-[12px] sm:text-[13px] text-gray-400 leading-tight">{parameter.description}</p>
+                                            )}
+                                          </div>
+                                          <div className="flex items-center space-x-1 shrink-0 bg-transparent">
+                                            <button
+                                              type="button"
+                                              onClick={() => setEditingParameter(parameter._id)}
+                                              className="p-2 text-gray-500 hover:text-[#3eaa76] hover:bg-emerald-50 rounded-full transition-colors"
+                                            >
+                                              <Edit2 className="w-[18px] h-[18px] stroke-[1.5]" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setDeleteModalState({ isOpen: true, type: 'parameter', targetId: parameter._id });
+                                              }}
+                                              className="p-2 text-[#e53e3e] hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                                            >
+                                              <Trash2 className="w-[18px] h-[18px] stroke-[1.5]" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                }) : (
+                                  <div className="text-center py-6 border border-dashed border-gray-200 dark:border-gray-800 rounded-xl m-4">
+                                    <p className="text-sm text-gray-500 italic">No hay parámetros asociados a esta ubicación.</p>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* New Parameter Form */}
               <div className="mb-8 p-6 bg-white rounded-2xl border border-dashed border-gray-300">
                 <h3 className="font-semibold text-gray-700 mb-6 flex items-center space-x-2 text-lg">
@@ -1252,187 +1480,6 @@ export default function Areas() {
                 </IonButton>
               </div>
 
-              {/* Parameters List */}
-              <div className="space-y-2">
-                {parameters
-                  .filter((parameter) => {
-                    const paramLocationId = getParameterLocationId(parameter);
-                    if (!newParameter.locationId) return false;
-                    return paramLocationId === newParameter.locationId;
-                  })
-                  .map((parameter) => {
-                    const paramLocationId = getParameterLocationId(parameter);
-                    const location = locations.find(l => l._id === paramLocationId);
-                    const area = location ? areas.find(a => a._id === location.areaId) : null;
-                    return (
-                      <div key={parameter._id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                        {editingParameter === parameter._id ? (
-                          <div className="space-y-4">
-                            {(() => {
-                              if (!editingParameterData[parameter._id]) {
-                                initializeParameterEditing(parameter);
-                              }
-                              return null;
-                            })()}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="float-group">
-                                <input
-                                  type="text"
-                                  value={editingParameterData[parameter._id]?.name || ''}
-                                  onChange={(e) => updateParameterEditingField(parameter._id, 'name', e.target.value)}
-                                  disabled={updatingParameter[parameter._id]}
-                                  placeholder=" "
-                                  className="float-input"
-                                />
-                                <label className="float-label">Nombre</label>
-                              </div>
-                              <div>
-                                <Label>Tipo</Label>
-                                <IonSelect
-                                  value={editingParameterData[parameter._id]?.type || 'sensor'}
-                                  onIonChange={(e) => updateParameterEditingField(parameter._id, 'type', e.detail.value as 'sensor' | 'status')}
-                                  disabled={updatingParameter[parameter._id]}
-                                  className="flex min-h-[40px] w-full rounded-md border border-input bg-background px-3 py-0 text-sm"
-                                >
-                                  <IonSelectOption value="sensor">Sensor (Valor numérico)</IonSelectOption>
-                                  <IonSelectOption value="status">Estado (ON/OFF)</IonSelectOption>
-                                </IonSelect>
-                              </div>
-                              <div className="float-group">
-                                <input
-                                  type="text"
-                                  value={editingParameterData[parameter._id]?.unit || ''}
-                                  onChange={(e) => updateParameterEditingField(parameter._id, 'unit', e.target.value)}
-                                  disabled={parameter.type === 'status' || updatingParameter[parameter._id]}
-                                  placeholder=" "
-                                  className="float-input"
-                                />
-                                <label className="float-label">Unidad</label>
-                              </div>
-                              <div className="float-group">
-                                <input
-                                  type="number"
-                                  min={0}
-                                  max={6}
-                                  value={editingParameterData[parameter._id]?.decimals ?? 2}
-                                  onChange={(e) => {
-                                    const value = Math.max(0, Math.min(6, Number(e.target.value)));
-                                    updateParameterEditingField(parameter._id, 'decimals', Number.isNaN(value) ? 2 : value);
-                                  }}
-                                  disabled={updatingParameter[parameter._id]}
-                                  placeholder=" "
-                                  className="float-input"
-                                />
-                                <label className="float-label">Decimales</label>
-                              </div>
-                              <div className="float-group md:col-span-2">
-                                <input
-                                  type="text"
-                                  value={editingParameterData[parameter._id]?.topic || ''}
-                                  onChange={(e) => updateParameterEditingField(parameter._id, 'topic', e.target.value)}
-                                  disabled={updatingParameter[parameter._id]}
-                                  placeholder=" "
-                                  className="float-input"
-                                />
-                                <label className="float-label">Tópico MQTT</label>
-                              </div>
-                              <div className="float-group md:col-span-2">
-                                <textarea
-                                  value={editingParameterData[parameter._id]?.description || ''}
-                                  onChange={(e) => updateParameterEditingField(parameter._id, 'description', e.target.value)}
-                                  disabled={updatingParameter[parameter._id]}
-                                  placeholder=" "
-                                  className="float-textarea resize-none"
-                                />
-                                <label className="float-label">Descripción</label>
-                              </div>
-                            </div>
-                            <div className="flex gap-2 items-center">
-                              <IonButton
-                                fill="solid"
-                                size="small"
-                                onClick={() => handleSaveParameter(parameter._id)}
-                                disabled={updatingParameter[parameter._id] || !editingParameterData[parameter._id]}
-                                className="font-bold text-white rounded shadow-sm"
-                                style={{ '--background': '#3eaa76', '--background-hover': '#338f61', '--padding-top': '0.75rem', '--padding-bottom': '0.75rem', '--padding-start': '1.5rem', '--padding-end': '1.5rem' }}
-                              >
-                                {updatingParameter[parameter._id] ? (
-                                  <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Guardando...
-                                  </>
-                                ) : (
-                                  'GUARDAR'
-                                )}
-                              </IonButton>
-                              <IonButton
-                                fill="clear"
-                                onClick={() => {
-                                  setEditingParameterData(prev => {
-                                    const newState = { ...prev };
-                                    delete newState[parameter._id];
-                                    return newState;
-                                  });
-                                  setEditingParameter(null);
-                                }}
-                              >
-                                <X className="w-5 h-5 text-gray-500" />
-                              </IonButton>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-2 flex-wrap">
-                                <h4 className="font-semibold">{parameter.name}</h4>
-                                {parameter.type === 'status' && (
-                                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded font-medium">
-                                    Estado
-                                  </span>
-                                )}
-                                <span className="text-sm text-muted-foreground">({parameter.unit})</span>
-                                {area && location && (
-                                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                    {area.name} - {location.name}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm font-mono text-muted-foreground mb-1">{parameter.topic}</p>
-                              {parameter.description && (
-                                <p className="text-sm text-muted-foreground">{parameter.description}</p>
-                              )}
-                            </div>
-                            <div className="flex items-center space-x-2 ml-4">
-                              <IonButton
-                                fill="clear"
-                                onClick={() => setEditingParameter(parameter._id)}
-                              >
-                                <Edit2 className="w-4 h-4 text-gray-600" />
-                              </IonButton>
-                              <IonButton
-                                fill="clear"
-                                color="danger"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeleteModalState({ isOpen: true, type: 'parameter', targetId: parameter._id });
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </IonButton>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                {!newParameter.locationId && (
-                  <div className="text-center py-6 border-2 border-dashed rounded-lg bg-muted/30">
-                    <p className="text-xs text-muted-foreground">
-                      Seleccione una ubicación para ver parámetros.
-                    </p>
-                  </div>
-                )}
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
