@@ -26,6 +26,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Plus, Edit2, Trash2, X, MapPin, Settings, Gauge, Loader2, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast, ToastContainer } from '@/components/ui/toast';
 import { DeleteConfirmModal } from '@/components/DeleteConfirmModal';
 
 interface Area {
@@ -76,6 +77,7 @@ interface Client {
 export default function Areas() {
   const { clientCode } = useClient();
   const isAdminView = !clientCode;
+  const { toasts, error: showError, success: showSuccess, remove: removeToast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClientCode, setSelectedClientCode] = useState('');
   const effectiveClientCode = clientCode || selectedClientCode || undefined;
@@ -216,7 +218,7 @@ export default function Areas() {
     const targetClientCode = isAdminView ? newAreaClientCode : clientCode;
 
     if (isAdminView && !targetClientCode) {
-      alert('Seleccione un cliente para la nueva área');
+      showError('Seleccione un cliente para la nueva área');
       return;
     }
     // Activate loading immediately
@@ -231,9 +233,10 @@ export default function Areas() {
       await createArea(newArea, targetClientCode);
       setNewArea({ name: '', description: '' });
       setNewAreaClientCode('');
+      showSuccess('Área creada exitosamente');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al crear área');
+      showError(error.response?.data?.error || 'Error al crear área');
     } finally {
       setCreatingArea(false);
     }
@@ -274,9 +277,10 @@ export default function Areas() {
         delete newState[id];
         return newState;
       });
+      showSuccess('Área actualizada exitosamente');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al actualizar área');
+      showError(error.response?.data?.error || 'Error al actualizar área');
     } finally {
       setUpdatingArea(prev => ({ ...prev, [id]: false }));
     }
@@ -286,9 +290,10 @@ export default function Areas() {
   const handleDeleteArea = async (id: string) => {
     try {
       await deleteArea(id, effectiveClientCode);
+      showError('Área eliminada');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al eliminar área');
+      showError(error.response?.data?.error || 'Error al eliminar área');
     }
   };
 
@@ -309,9 +314,10 @@ export default function Areas() {
     try {
       await createLocation(newLocation, effectiveClientCode);
       setNewLocation({ name: '', description: '', message: '', status: 'info', areaId: '' });
+      showSuccess('Ubicación creada exitosamente');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al crear ubicación');
+      showError(error.response?.data?.error || 'Error al crear ubicación');
     } finally {
       setCreatingLocation(false);
     }
@@ -361,9 +367,10 @@ export default function Areas() {
         delete newState[id];
         return newState;
       });
+      showSuccess('Ubicación actualizada exitosamente');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al actualizar ubicación');
+      showError(error.response?.data?.error || 'Error al actualizar ubicación');
     } finally {
       setUpdatingLocation(prev => ({ ...prev, [id]: false }));
     }
@@ -373,16 +380,17 @@ export default function Areas() {
   const handleDeleteLocation = async (id: string) => {
     try {
       await deleteLocation(id, effectiveClientCode);
+      showError('Ubicación eliminada');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al eliminar ubicación');
+      showError(error.response?.data?.error || 'Error al eliminar ubicación');
     }
   };
 
   // Parameter CRUD
   const handleCreateParameter = async () => {
     if (isAdminView && !selectedClientCode) {
-      alert('Seleccione un cliente para continuar');
+      showError('Seleccione un cliente para continuar');
       return;
     }
     // Activate loading immediately
@@ -404,9 +412,10 @@ export default function Areas() {
       };
       await createParameter(paramData, effectiveClientCode);
       setNewParameter({ name: '', unit: '', topic: '', description: '', locationId: '', type: 'sensor', decimals: 2 });
+      showSuccess('Parámetro creado exitosamente');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al crear parámetro');
+      showError(error.response?.data?.error || 'Error al crear parámetro');
     } finally {
       setCreatingParameter(false);
     }
@@ -459,9 +468,10 @@ export default function Areas() {
         delete newState[id];
         return newState;
       });
+      showSuccess('Parámetro actualizado exitosamente');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al actualizar parámetro');
+      showError(error.response?.data?.error || 'Error al actualizar parámetro');
     } finally {
       setUpdatingParameter(prev => ({ ...prev, [id]: false }));
     }
@@ -470,9 +480,10 @@ export default function Areas() {
   const handleDeleteParameter = async (id: string) => {
     try {
       await deleteParameter(id, effectiveClientCode);
+      showError('Parámetro eliminado');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al eliminar parámetro');
+      showError(error.response?.data?.error || 'Error al eliminar parámetro');
     }
   };
 
@@ -511,9 +522,10 @@ export default function Areas() {
         delete updated[parameterId];
         return updated;
       });
+      showSuccess('Setpoint creado exitosamente');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al crear setpoint');
+      showError(error.response?.data?.error || 'Error al crear setpoint');
     } finally {
       setCreatingSetpoint(prev => {
         const newState = { ...prev };
@@ -563,9 +575,10 @@ export default function Areas() {
         delete newState[id];
         return newState;
       });
+      showSuccess('Setpoint actualizado exitosamente');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al actualizar setpoint');
+      showError(error.response?.data?.error || 'Error al actualizar setpoint');
     } finally {
       setUpdatingSetpoint(prev => ({ ...prev, [id]: false }));
     }
@@ -575,9 +588,10 @@ export default function Areas() {
   const handleDeleteSetpoint = async (id: string) => {
     try {
       await deleteSetpoint(id, effectiveClientCode);
+      showError('Setpoint eliminado');
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Error al eliminar setpoint');
+      showError(error.response?.data?.error || 'Error al eliminar setpoint');
     }
   };
 
@@ -2020,6 +2034,7 @@ export default function Areas() {
                 'Se eliminará este estado y sus notificaciones asociadas'
         }
       />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div >
   );
 }

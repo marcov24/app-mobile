@@ -203,7 +203,7 @@ export default function Clients() {
     try {
       await deleteClient(id);
       loadClients();
-      showSuccess('Cliente eliminado exitosamente');
+      showError('Cliente eliminado exitosamente');
     } catch (error: any) {
       showError(error.response?.data?.error || 'Error al eliminar cliente');
     }
