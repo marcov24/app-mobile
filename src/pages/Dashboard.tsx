@@ -995,16 +995,18 @@ export default function Dashboard() {
               <div className="flex-1" />
               <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600 mx-auto" />
               <div className="flex-1 flex justify-end">
-                <button
+                <IonButton
+                  fill="clear"
                   onClick={async () => {
                     setIsConfigModalOpen(false);
                     setLoading(true);
                     await loadData();
                   }}
-                  className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-colors"
+                  className="rounded-full text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors"
+                  style={{ '--padding-top': '0.75rem', '--padding-bottom': '0.75rem', '--padding-start': '0.75rem', '--padding-end': '0.75rem', '--border-radius': '9999px', 'margin': 0 }}
                 >
-                  <X className="w-4 h-4" />
-                </button>
+                  <X className="w-6 h-6" />
+                </IonButton>
               </div>
             </div>
 
