@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 // import { Button } from '@/components/ui/button';
 
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, CheckCircle2, Loader2, RefreshCw, Calendar, ArrowLeft, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Loader2, RefreshCw, Calendar, ArrowLeft, Download, FileSpreadsheet, FileText, Info } from 'lucide-react';
 import { IonSelect, IonSelectOption, IonButton, IonList, IonItemSliding, IonItem, IonItemOptions, IonItemOption, IonAccordion, IonAccordionGroup, IonModal } from '@ionic/react';
 import { FaSliders } from 'react-icons/fa6';
 import { DateRange } from 'react-date-range';
@@ -238,34 +238,30 @@ export default function Alerts() {
           </div>
         )}
 
-        <div className="w-full flex flex-row items-center justify-between gap-2 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 pt-3 pb-3">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-foreground leading-none">
+        <div className="w-full flex flex-row items-center justify-between gap-4 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 pt-5 pb-3">
+          <div className="flex-1 min-w-0 pr-4">
+            <h2 className="text-[28px] sm:text-[32px] font-black tracking-tighter text-slate-800 dark:text-white leading-none">
               Histórico de Alertas
             </h2>
-            <p className="text-sm text-muted-foreground mt-2">
-              Visualice y gestione todas las alertas del sistema
-            </p>
           </div>
           {alerts.length > 0 && (
             <div className="relative flex-shrink-0" ref={exportMenuRef}>
               <IonButton
+                shape="round"
                 onClick={() => setShowExportMenu(!showExportMenu)}
-                className="text-sm font-semibold m-0 normal-case shadow-sm"
+                className="text-sm font-bold m-0 normal-case"
                 style={{
                   '--background': '#3eaa76',
                   '--background-hover': '#2d8a5e',
-                  '--background-activated': '#2d8a5e',
                   '--color': 'white',
-                  '--border-radius': '8px',
-                  '--padding-top': '6px',
-                  '--padding-bottom': '6px',
-                  '--padding-start': '14px',
-                  '--padding-end': '14px',
+                  '--padding-start': '16px',
+                  '--padding-end': '16px',
+                  '--padding-top': '8px',
+                  '--padding-bottom': '8px',
                 } as React.CSSProperties}
               >
-                <Download className="w-4 h-4 mr-2" />
-                Exportar
+                <Download className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Exportar</span>
               </IonButton>
               {showExportMenu && (
                 <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -300,6 +296,16 @@ export default function Alerts() {
               )}
             </div>
           )}
+        </div>
+
+        {/* Info Banner */}
+        <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 pb-6">
+          <div className="flex bg-blue-50/80 dark:bg-blue-900/20 p-3.5 sm:p-4 border border-blue-100 dark:border-blue-800/30 rounded-2xl items-center sm:items-start gap-3 shadow-[0_2px_10px_rgb(59,130,246,0.05)] transition-all">
+            <Info className="w-[18px] h-[18px] sm:w-5 sm:h-5 text-blue-500 dark:text-blue-400 flex-shrink-0" />
+            <p className="text-[13px] sm:text-sm text-blue-800 dark:text-blue-200 font-semibold leading-snug">
+              Visualice y gestione todas las alertas del sistema.
+            </p>
+          </div>
         </div>
       </div>
 
